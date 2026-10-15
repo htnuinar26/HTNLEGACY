@@ -16,10 +16,8 @@ import { getSettings } from "@/lib/settings";
 import { getPeriodeBulan } from "@/lib/status";
 import { ZipArchive } from "archiver";
 import * as XLSX from "xlsx";
-import { readFile } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
 import { auditLog } from "@/lib/audit";
+import { downloadStorageObject } from "@/lib/storage";
 
 export async function POST() {
   if (!(await isAdmin())) {
@@ -95,10 +93,8 @@ Statistik:
     let addedStruk = 0;
     const usedNames = new Set<string>();
     for (const s of strukList) {
-      const absPath = path.join(process.cwd(), "public", s.imageUrl);
-      if (!existsSync(absPath)) continue;
       try {
-        const imgBuf = await readFile(absPath);
+        const imgBuf = await downloadStorageObject(s.imageUrl);
         // Unique filename: {namaLengkap}.ext (handle duplicate names)
         const safeBase = s.anggota.namaLengkap
           .normalize("NFKC")

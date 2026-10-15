@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/React-19-149eca?logo=react" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript" alt="TypeScript 5" />
   <img src="https://img.shields.io/badge/Prisma-6-2d3748?logo=prisma" alt="Prisma 6" />
-  <img src="https://img.shields.io/badge/Database-SQLite-003b57?logo=sqlite" alt="SQLite" />
+  <img src="https://img.shields.io/badge/Database-Neon%20PostgreSQL-00e599?logo=postgresql" alt="Neon PostgreSQL" />
   <img src="https://img.shields.io/badge/Runtime-Bun-f9f1e1?logo=bun" alt="Bun" />
 </div>
 
@@ -45,7 +45,7 @@ Anggota dapat melihat status pembayaran, daftar anggota, barcode pembayaran, riw
 | UI | React 19, Tailwind CSS 4, Radix UI |
 | Bahasa | TypeScript |
 | Runtime dan package manager | Bun |
-| Database | SQLite melalui Prisma |
+| Database | PostgreSQL melalui Neon dan Prisma |
 | Autentikasi | JWT berbasis httpOnly cookie |
 | Enkripsi password anggota | AES-256-GCM |
 | Receipt | Upload file dan review manual Admin/Bendahara |
@@ -58,7 +58,7 @@ Anggota dapat melihat status pembayaran, daftar anggota, barcode pembayaran, riw
 - Bun versi 1.4 atau lebih baru.
 - Node.js versi 20 atau lebih baru untuk script tooling.
 - Environment variable yang diperlukan.
-- SQLite database lokal atau database yang sesuai dengan `DATABASE_URL`.
+- Neon PostgreSQL dan Supabase Storage.
 
 ## Instalasi Lokal
 
@@ -92,7 +92,8 @@ cp .env.example .env
 4. Isi secret pada `.env`.
 
 ```env
-DATABASE_URL="file:../db/custom.db"
+DATABASE_URL="postgresql://user:password@ep-example-pooler.region.aws.neon.tech/neondb?sslmode=require"
+DIRECT_URL="postgresql://user:password@ep-example.region.aws.neon.tech/neondb?sslmode=require"
 JWT_SECRET="ganti-dengan-secret-random-yang-panjang"
 ENCRYPTION_KEY="64-karakter-hex-untuk-32-byte"
 ADMIN_PASSWORD="password-admin-yang-kuat"
@@ -136,6 +137,10 @@ Template lengkap tersedia pada [.env.example](.env.example).
 | `JWT_SECRET` | Ya | Secret untuk signing session JWT |
 | `ENCRYPTION_KEY` | Ya | 64 karakter hex atau 32 karakter string untuk AES-256-GCM |
 | `ADMIN_PASSWORD` | Ya | Password akses panel admin |
+| `DIRECT_URL` | Ya untuk migrasi | Direct connection Neon untuk Prisma migration |
+| `SUPABASE_URL` | Ya | URL project Supabase untuk Storage |
+| `SUPABASE_SECRET_KEY` | Ya | Secret key server-side Supabase Storage |
+| `SUPABASE_STORAGE_BUCKET` | Ya | Nama bucket Storage receipt dan barcode |
 | `NEXT_PUBLIC_INSTANCE_NAME` | Tidak | Nama instance yang ditampilkan di UI |
 | `DEBUG_MW` | Tidak | Set `1` untuk log middleware |
 
@@ -208,13 +213,7 @@ bun run start
 
 Reverse proxy dapat menggunakan Caddy. Contoh konfigurasi tersedia pada [Caddyfile](Caddyfile).
 
-Pastikan direktori berikut memiliki permission yang sesuai jika menggunakan penyimpanan file lokal:
-
-```text
-public/uploads/
-```
-
-Untuk deployment berskala lebih besar, pertimbangkan memindahkan database ke PostgreSQL dan file upload ke object storage private.
+Pastikan Neon PostgreSQL dan bucket Supabase Storage sudah tersedia sebelum deployment.
 
 ## Catatan Pengembangan
 

@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isAdmin } from "@/lib/auth";
+import { createStorageSignedUrl } from "@/lib/storage";
 
 export async function GET(
   _req: NextRequest,
@@ -40,6 +41,9 @@ export async function GET(
 
   return NextResponse.json({
     anggota,
-    strukList,
+    strukList: await Promise.all(strukList.map(async (s) => ({
+      ...s,
+      imageUrl: await createStorageSignedUrl(s.imageUrl),
+    }))),
   });
 }

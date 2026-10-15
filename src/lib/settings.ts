@@ -5,6 +5,7 @@
 // ============================================================
 
 import { db } from "@/lib/db";
+import { createStorageSignedUrl } from "@/lib/storage";
 
 const DEFAULTS = {
   id: "singleton",
@@ -24,4 +25,9 @@ export async function getSettings() {
     s = await db.settings.create({ data: DEFAULTS });
   }
   return s;
+}
+
+export async function getSettingsForDisplay() {
+  const s = await getSettings();
+  return { ...s, barcodeImageUrl: await createStorageSignedUrl(s.barcodeImageUrl ?? "") };
 }

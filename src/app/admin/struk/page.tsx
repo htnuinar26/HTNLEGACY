@@ -3,6 +3,7 @@ import { getPeriodeBulan } from "@/lib/status";
 import { StrukListClient } from "./struk-list-client";
 import { Inbox } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
+import { createStorageSignedUrl } from "@/lib/storage";
 
 export const dynamic = "force-dynamic";
 
@@ -38,11 +39,12 @@ export default async function AdminStrukPage() {
         />
       ) : (
         <StrukListClient
-          strukList={strukList.map((s) => ({
+          strukList={await Promise.all(strukList.map(async (s) => ({
             ...s,
+            imageUrl: await createStorageSignedUrl(s.imageUrl),
             createdAt: s.createdAt.toISOString(),
             verifiedAt: s.verifiedAt?.toISOString() ?? null,
-          }))}
+          })))}
           periode={periode}
         />
       )}

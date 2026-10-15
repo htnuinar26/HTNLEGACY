@@ -2,15 +2,13 @@
 // POST /api/admin/upload-barcode
 // ------------------------------------------------------------
 // Upload gambar barcode statis (bukan generate dinamis).
-// Disimpan di /public/uploads/barcode.{ext} (overwrite lama).
+// Disimpan di Supabase Storage dan menggantikan object barcode sebelumnya.
 // ============================================================
 
 import { NextRequest, NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth";
-import { writeFile, mkdir } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
 import { db } from "@/lib/db";
+import { uploadStorageObject, removeStorageObjects, createStorageSignedUrl } from "@/lib/storage";
 
 const ALLOWED = ["image/png", "image/jpeg", "image/webp"];
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
@@ -39,34 +37,22 @@ export async function POST(req: NextRequest) {
     }
 
     const ext = file.type === "image/png" ? "png" : file.type === "image/jpeg" ? "jpg" : "webp";
-    const dir = path.join(process.cwd(), "public", "uploads");
-    if (!existsSync(dir)) await mkdir(dir, { recursive: true });
-
-    const { unlink } = await import("fs/promises");
-    // Hapus file barcode lama (semua ekstensi yang mungkin)
-    for (const e of ["png", "jpg", "webp"]) {
-      const p = path.join(dir, `barcode.${e}`);
-      try {
-        if (existsSync(p)) await unlink(p);
-      } catch {
-        /* ignore */
-      }
-    }
-
-    const filename = `barcode.${ext}`;
-    const fullPath = path.join(dir, filename);
+    const filename = `assets/barcode-${Date.now()}.${ext}`;
     const buf = Buffer.from(await file.arrayBuffer());
-    await writeFile(fullPath, buf);
+    await uploadStorageObject(filename, buf, file.type);
 
-    const url = `/uploads/${filename}`;
+    const previous = await db.settings.findUnique({ where: { id: "singleton" }, select: { barcodeImageUrl: true } });
+    if (previous?.barcodeImageUrl && !previous.barcodeImageUrl.startsWith("/")) {
+      await removeStorageObjects([previous.barcodeImageUrl]).catch(() => undefined);
+    }
     // Update settings
     await db.settings.upsert({
       where: { id: "singleton" },
-      update: { barcodeImageUrl: url },
-      create: { id: "singleton", barcodeImageUrl: url },
+      update: { barcodeImageUrl: filename },
+      create: { id: "singleton", barcodeImageUrl: filename },
     });
 
-    return NextResponse.json({ ok: true, url });
+    return NextResponse.json({ ok: true, url: await createStorageSignedUrl(filename) });
   } catch (e) {
     console.error("[upload-barcode] error", e);
     return NextResponse.json(

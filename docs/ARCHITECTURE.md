@@ -3,8 +3,8 @@
 ## Komponen
 
 - Next.js App Router menangani halaman dan API.
-- Prisma dan SQLite menangani database.
-- Filesystem `public/uploads/struk/{YYYY-MM}` menyimpan file receipt.
+- Prisma dan Neon PostgreSQL menangani database.
+- Supabase Storage menyimpan file receipt dan barcode.
 - Middleware dan route handler menerapkan authorization Admin/anggota.
 - Admin review page menangani keputusan manual.
 

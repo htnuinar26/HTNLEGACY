@@ -2,12 +2,11 @@
 // Upload struk dengan verifikasi password per-aksi untuk review manual.
 
 import { NextRequest, NextResponse } from "next/server";
-import { mkdir, unlink, writeFile } from "fs/promises";
-import path from "path";
 import { db } from "@/lib/db";
 import { getPeriodeBulan } from "@/lib/status";
 import { verifyPassword } from "@/lib/crypto";
 import { checkRateLimit, getClientIp, resetRateLimit } from "@/lib/rate-limit";
+import { uploadStorageObject, removeStorageObjects } from "@/lib/storage";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 const MIME_TO_EXT: Record<string, string> = {
@@ -79,12 +78,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const dir = path.join(process.cwd(), "public", "uploads", "struk", periode);
-    await mkdir(dir, { recursive: true });
     const filename = `${anggota.id}-${Date.now()}.${ext}`;
-    const absolutePath = path.join(dir, filename);
+    const storagePath = `struk/${periode}/${filename}`;
     const imageBuffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(absolutePath, imageBuffer, { flag: "wx" });
+    await uploadStorageObject(storagePath, imageBuffer, file.type);
 
     try {
       const activeAfterSave = await db.struk.findFirst({
@@ -92,7 +89,7 @@ export async function POST(req: NextRequest) {
         select: { statusStruk: true },
       });
       if (activeAfterSave) {
-        await unlink(absolutePath).catch(() => undefined);
+        await removeStorageObjects([storagePath]).catch(() => undefined);
         return NextResponse.json(
           { error: `Sudah ada struk ${activeAfterSave.statusStruk.toLowerCase()} untuk periode ini.` },
           { status: 409 }
@@ -102,7 +99,7 @@ export async function POST(req: NextRequest) {
       const created = await db.struk.create({
         data: {
           anggotaId,
-          imageUrl: `/uploads/struk/${periode}/${filename}`,
+          imageUrl: storagePath,
           statusStruk: "PENDING",
           periodeBulan: periode,
         },
@@ -110,7 +107,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({ ok: true, strukId: created.id, statusStruk: created.statusStruk });
     } catch (error) {
-      await unlink(absolutePath).catch(() => undefined);
+      await removeStorageObjects([storagePath]).catch(() => undefined);
       throw error;
     }
   } catch (error) {

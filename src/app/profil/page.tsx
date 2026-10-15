@@ -5,6 +5,7 @@ import { getSettings } from "@/lib/settings";
 import { getCurrentAnggota } from "@/lib/auth";
 import { computeStatusTampil, formatRupiah, getPeriodeBulan, normalizePhone } from "@/lib/status";
 import { redirect } from "next/navigation";
+import { createStorageSignedUrl } from "@/lib/storage";
 import Link from "next/link";
 import { StatusBadge } from "@/components/status-badge";
 import { User, Phone, Calendar, Wallet, QrCode, ArrowRight, CheckCircle2, Clock, FileText, TrendingUp, Receipt } from "lucide-react";
@@ -48,6 +49,9 @@ export default async function ProfilPage() {
   ]);
 
   if (!anggota) redirect("/login");
+  const signedStrukList = await Promise.all(
+    strukList.map(async (s) => ({ ...s, imageUrl: await createStorageSignedUrl(s.imageUrl) }))
+  );
   const statusTampil = computeStatusTampil(
     anggota.status,
     settings.deadlineTanggal
@@ -236,7 +240,7 @@ export default async function ProfilPage() {
             <FileText size={20} strokeWidth={2.5} />
             Riwayat Struk {getPeriodeBulan()}
           </h2>
-          {strukList.length === 0 ? (
+          {signedStrukList.length === 0 ? (
             <EmptyState
               icon={FileText}
               title="Belum ada struk periode ini"
@@ -245,7 +249,7 @@ export default async function ProfilPage() {
             />
           ) : (
             <div className="flex flex-col gap-2">
-              {strukList.map((s) => (
+              {signedStrukList.map((s) => (
                 <div
                   key={s.id}
                   className="flex items-center gap-3 p-3"

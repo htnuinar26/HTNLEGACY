@@ -1,11 +1,11 @@
 import { AppShell } from "@/components/app-shell";
-import { getSettings } from "@/lib/settings";
+import { getSettingsForDisplay } from "@/lib/settings";
 import { QrCode, Building2, CreditCard, Phone, User } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function BarcodePage() {
-  const s = await getSettings();
+  const s = await getSettingsForDisplay();
 
   const panitia = [
     { label: "Bendahara", value: s.kontakBendahara },

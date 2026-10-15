@@ -8,12 +8,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getSettings } from "@/lib/settings";
+import { getSettings, getSettingsForDisplay } from "@/lib/settings";
+import { createStorageSignedUrl } from "@/lib/storage";
 import { isAdmin } from "@/lib/auth";
 import { auditLog } from "@/lib/audit";
 
 export async function GET() {
-  const s = await getSettings();
+  const s = await getSettingsForDisplay();
   return NextResponse.json(s);
 }
 
@@ -59,7 +60,7 @@ export async function PATCH(req: NextRequest) {
       targetLabel: "singleton",
       detail: Object.keys(data).join(", "),
     });
-    return NextResponse.json(updated);
+    return NextResponse.json({ ...updated, barcodeImageUrl: await createStorageSignedUrl(updated.barcodeImageUrl ?? "") });
   } catch (e) {
     console.error("[settings PATCH] error", e);
     return NextResponse.json(

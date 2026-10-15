@@ -1,7 +1,7 @@
 // ============================================================
 // SIDU — App-layer constants & validators
 // ------------------------------------------------------------
-// Karena SQLite tidak mendukung native enum, semua nilai enum
+// Nilai status disimpan sebagai String agar data tetap kompatibel.
 // disimpan sebagai String dengan konstanta di sini. Saat migrasi
 // ke PostgreSQL, cukup ubah schema Prisma ke native enum tanpa
 // menyentuh logic downstream (konstanta ini tetap dipakai).

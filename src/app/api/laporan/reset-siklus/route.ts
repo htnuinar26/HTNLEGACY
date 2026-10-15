@@ -2,7 +2,7 @@
 // POST /api/laporan/reset-siklus
 // ------------------------------------------------------------
 // Reset siklus bulanan:
-// 1. Hapus seluruh file struk di /public/uploads/struk/{periodeBulan}/**
+// 1. Hapus seluruh object struk di Supabase Storage untuk periode berjalan.
 // 2. Update seluruh Anggota.status → BELUM_LUNAS
 // 3. TIDAK menghapus record Struk maupun Transaksi dari database
 //    (gambar fisik hilang, imageUrl jadi stale link — diterima untuk bebaskan storage)
@@ -13,10 +13,8 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isAdmin } from "@/lib/auth";
 import { getPeriodeBulan } from "@/lib/status";
-import { rm } from "fs/promises";
-import { existsSync } from "fs";
-import path from "path";
 import { auditLog } from "@/lib/audit";
+import { listStorageObjects, removeStorageObjects } from "@/lib/storage";
 
 export async function POST() {
   if (!(await isAdmin())) {
@@ -24,17 +22,14 @@ export async function POST() {
   }
   try {
     const periode = getPeriodeBulan();
-    const strukDir = path.join(process.cwd(), "public", "uploads", "struk", periode);
-
-    // 1. Hapus folder struk periode ini
     let storageCleared = false;
-    if (existsSync(strukDir)) {
-      try {
-        await rm(strukDir, { recursive: true, force: true });
-        storageCleared = true;
-      } catch (e) {
-        console.warn("[reset-siklus] gagal hapus storage:", e);
-      }
+    try {
+      const files = await listStorageObjects(`struk/${periode}`);
+      const paths = files.filter((f) => f.name).map((f) => `struk/${periode}/${f.name}`);
+      await removeStorageObjects(paths);
+      storageCleared = paths.length > 0;
+    } catch (e) {
+      console.warn("[reset-siklus] gagal hapus storage:", e);
     }
 
     // 2. Reset semua Anggota.status → BELUM_LUNAS
