@@ -43,6 +43,9 @@ model Struk {
   anggota       Anggota   @relation(fields: [anggotaId], references: [id], onDelete: Cascade)
   imageUrl      String    // path local: /uploads/struk/{YYYY-MM}/{anggotaId}-{ts}.ext
   statusStruk   String    @default("PENDING") // "PENDING" | "APPROVED" | "REJECTED"
+  nominal       Int?      // nominal receipt; nullable for legacy member uploads
+  catatan       String?   // optional note, primarily used by manual admin receipts
+  dibuatOleh    String?   // "ADMIN" for manually generated receipts; null for member uploads
   ditolakAlasan String?
   periodeBulan  String    // "YYYY-MM" — untuk grouping & reset siklus
   createdAt     DateTime  @default(now())
