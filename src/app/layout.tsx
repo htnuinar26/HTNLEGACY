@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
@@ -35,9 +36,11 @@ export default function RootLayout({
           fontFamily: "var(--font-jakarta), 'Inter', system-ui, sans-serif",
         }}
       >
-        {children}
-        <Toaster />
-        <SonnerToaster />
+        <ThemeProvider>
+          {children}
+          <Toaster />
+          <SonnerToaster />
+        </ThemeProvider>
       </body>
     </html>
   );
