@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { AdminGlobalSearch } from "@/components/admin-global-search";
 import { PendingStrukBadge } from "@/components/pending-struk-badge";
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const NAV = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
@@ -119,6 +120,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <AdminGlobalSearch />
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Link
             href="/beranda"
             className="brutal-btn brutal-btn-neutral px-3 py-2 text-sm"
