@@ -86,6 +86,20 @@
   --radius: 12px;
 }
 
+.dark {
+  --bg-base: #171717;
+  --ink: #f5f5f4;
+  --surface: #262626;
+  --status-lunas-bg: #123b26;
+  --status-belum-lunas: #262626;
+  --status-belum-lunas-border: #737373;
+  --status-tertunggak-bg: #451a1a;
+  --status-pending-bg: #4a3506;
+  --accent-primary: #facc15;
+  --accent-secondary: #8b5cf6;
+  --accent-tertiary: #60a5fa;
+}
+
 @layer base {
   * {
     border-color: var(--ink);
@@ -101,6 +115,10 @@
     font-weight: 500;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  img {
+    max-width: 100%;
+    height: auto;
   }
 }
 
@@ -237,6 +255,11 @@
     color: #7f1d1d;
     border-color: #7f1d1d;
   }
+
+  .status-badge {
+    max-width: 100%;
+    white-space: nowrap;
+  }
   .badge-pending {
     background: var(--status-pending-bg);
     color: #78350f;
@@ -277,6 +300,24 @@
   }
   .sidebar-item-active:hover {
     background: var(--accent-primary);
+  }
+}
+
+@media (max-width: 640px) {
+  .brutal-card {
+    box-shadow: 4px 4px 0px var(--ink);
+  }
+
+  .brutal-btn {
+    min-height: 42px;
+  }
+
+  .recharts-responsive-container {
+    min-width: 0 !important;
+  }
+
+  table {
+    min-width: 640px;
   }
 }
 
