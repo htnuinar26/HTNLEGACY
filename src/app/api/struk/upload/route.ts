@@ -7,6 +7,7 @@ import { getPeriodeBulan } from "@/lib/status";
 import { verifyPassword } from "@/lib/crypto";
 import { checkRateLimit, getClientIp, resetRateLimit } from "@/lib/rate-limit";
 import { uploadStorageObject, removeStorageObjects } from "@/lib/storage";
+import { isReceiptPeriodAllowed } from "@/lib/receipt-policy";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 const MIME_TO_EXT: Record<string, string> = {
@@ -22,6 +23,7 @@ export async function POST(req: NextRequest) {
     const form = await req.formData();
     const anggotaId = String(form.get("anggotaId") ?? "").trim();
     const password = String(form.get("password") ?? "");
+    const requestedPeriod = String(form.get("periodeBulan") ?? "").trim();
     const file = form.get("file");
 
     if (!anggotaId || !password || !(file instanceof File)) {
@@ -66,7 +68,13 @@ export async function POST(req: NextRequest) {
     }
     resetRateLimit(rateKey);
 
-    const periode = getPeriodeBulan();
+    const periode = requestedPeriod || getPeriodeBulan();
+    if (!/^\d{4}-\d{2}$/.test(periode) || !isReceiptPeriodAllowed(periode)) {
+      return NextResponse.json(
+        { error: "Struk hanya dapat dikirim untuk periode berjalan atau maksimal 3 bulan sebelumnya." },
+        { status: 400 }
+      );
+    }
     const existing = await db.struk.findFirst({
       where: { anggotaId, periodeBulan: periode, statusStruk: { in: ["PENDING", "APPROVED"] } },
       select: { statusStruk: true },
