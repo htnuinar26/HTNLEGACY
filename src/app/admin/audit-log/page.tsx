@@ -13,6 +13,21 @@ export default async function AdminAuditLogPage() {
   const allLogs = await db.auditLog.findMany({
     select: { aksi: true },
   });
+  const targetIds = logs.map((log) => log.targetId).filter((id): id is string => Boolean(id));
+  const relatedTransactions = await db.transaksi.findMany({
+    where: {
+      OR: [
+        { id: { in: targetIds } },
+        { strukId: { in: targetIds } },
+      ],
+    },
+    select: { id: true, strukId: true },
+  });
+  const transactionByReference = new Map<string, string>();
+  for (const transaction of relatedTransactions) {
+    transactionByReference.set(transaction.id, transaction.id);
+    if (transaction.strukId) transactionByReference.set(transaction.strukId, transaction.id);
+  }
   const statMap = new Map<string, number>();
   for (const l of allLogs) {
     statMap.set(l.aksi, (statMap.get(l.aksi) ?? 0) + 1);
@@ -52,6 +67,7 @@ export default async function AdminAuditLogPage() {
         initialLogs={logs.map((log) => ({
           ...log,
           createdAt: log.createdAt.toISOString(),
+          transactionId: log.targetId ? transactionByReference.get(log.targetId) ?? null : null,
         }))}
       />
     </div>
