@@ -15,6 +15,7 @@ import { isValidGender, isValidStatusIuranStored } from "@/lib/constants";
 import { encryptPassword } from "@/lib/crypto";
 import { isValidIndoPhone, normalizePhone, getPeriodeBulan } from "@/lib/status";
 import { getAnggotaSession } from "@/lib/session";
+import { getRecentReceiptPeriods } from "@/lib/receipt-policy";
 
 export async function GET() {
   if (!(await getAnggotaSession()) && !(await isAdmin())) {
@@ -34,12 +35,17 @@ export async function GET() {
     }),
     getSettings(),
     db.struk.findMany({
-      where: { periodeBulan: getPeriodeBulan(), statusStruk: { in: ["PENDING", "APPROVED"] } },
-      select: { anggotaId: true, statusStruk: true },
+      where: { periodeBulan: { in: getRecentReceiptPeriods() }, statusStruk: { in: ["PENDING", "APPROVED"] } },
+      select: { anggotaId: true, statusStruk: true, periodeBulan: true },
     }),
   ]);
 
-  const activeByAnggota = new Map(activeStruk.map((s) => [s.anggotaId, s.statusStruk]));
+  const activeByAnggota = new Map<string, string>();
+  for (const receipt of activeStruk) {
+    if (receipt.periodeBulan === getPeriodeBulan()) {
+      activeByAnggota.set(receipt.anggotaId, receipt.statusStruk);
+    }
+  }
 
   const now = new Date();
   const list = anggota.map((a) => ({
