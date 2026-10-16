@@ -11,6 +11,7 @@ import {
   Settings as SettingsIcon,
   RefreshCw,
   FileArchive,
+  ReceiptText,
   ScrollText,
   ArrowRight,
 } from "lucide-react";
@@ -30,6 +31,7 @@ const AKSI_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: 
   DELETE_TRANSAKSI: { icon: Trash2, color: "#ffffff", bg: "var(--status-tertunggak)", label: "Hapus Transaksi" },
   RESET_SIKLUS: { icon: RefreshCw, color: "var(--ink)", bg: "var(--status-pending)", label: "Reset Siklus" },
   GENERATE_LAPORAN: { icon: FileArchive, color: "var(--ink)", bg: "var(--accent-tertiary)", label: "Generate Laporan" },
+  GENERATE_STRUK_MANUAL: { icon: ReceiptText, color: "var(--ink)", bg: "var(--accent-primary)", label: "Generate Struk Manual" },
 };
 
 export async function RecentActivity({ limit = 5 }: { limit?: number }) {
