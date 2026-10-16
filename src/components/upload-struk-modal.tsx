@@ -6,6 +6,8 @@ import { StatusBadge } from "./status-badge";
 import { useEscapeToClose } from "@/hooks/use-escape-to-close";
 import { toast as sonnerToast } from "@/components/ui/sonner";
 import { HelpTooltip } from "@/components/help-tooltip";
+import { getRecentPeriodeBulan, formatPeriodeLabel } from "@/lib/periode";
+import { getPeriodeBulan } from "@/lib/status";
 
 type AnggotaItem = {
   id: string;
@@ -29,6 +31,7 @@ export function UploadStrukModal({
   const [pwdLoading, setPwdLoading] = useState(false);
 
   const [file, setFile] = useState<File | null>(null);
+  const [periodeBulan, setPeriodeBulan] = useState(getPeriodeBulan());
   const [uploadLoading, setUploadLoading] = useState(false);
   const [uploadErr, setUploadErr] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -73,6 +76,7 @@ export function UploadStrukModal({
       fd.append("file", file);
       fd.append("anggotaId", anggota.id);
       fd.append("password", password);
+      fd.append("periodeBulan", periodeBulan);
       const res = await fetch("/api/struk/upload", {
         method: "POST",
         body: fd,
@@ -195,8 +199,19 @@ export function UploadStrukModal({
         {step === "upload" && (
           <div>
             <p className="text-sm font-semibold text-[#6b6b6b] mb-3">
-              Password terverifikasi. Upload gambar struk pembayaran (JPG/PNG/WebP, maks 5MB).
+              Password terverifikasi. Pilih periode pembayaran dan upload gambar struk (JPG/PNG/WebP, maks 5MB).
             </p>
+            <label htmlFor="periode-struk" className="mb-2 block text-sm font-extrabold">Periode pembayaran</label>
+            <select
+              id="periode-struk"
+              value={periodeBulan}
+              onChange={(event) => setPeriodeBulan(event.target.value)}
+              className="brutal-select mb-3 w-full"
+            >
+              {getRecentPeriodeBulan(4, getPeriodeBulan()).map((period) => (
+                <option key={period} value={period}>{formatPeriodeLabel(period)}</option>
+              ))}
+            </select>
             <input
               ref={fileRef}
               type="file"

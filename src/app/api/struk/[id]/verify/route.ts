@@ -76,38 +76,40 @@ export async function POST(
           { status: 409 }
         );
       }
-      // Approve: update struk + anggota LUNAS + transaksi MASUK otomatis
-      await db.$transaction([
-        db.struk.update({
+      const nominal = struk.nominal ?? settings.nominalIuran;
+      await db.$transaction(async (tx) => {
+        await tx.struk.update({
           where: { id },
-          data: { statusStruk: "APPROVED", verifiedAt: now },
-        }),
-        db.anggota.update({
-          where: { id: struk.anggotaId },
-          data: { status: "LUNAS" },
-        }),
-        db.transaksi.create({
+          data: { statusStruk: "APPROVED", verifiedAt: now, nominal },
+        });
+        if (struk.periodeBulan === getPeriodeBulan()) {
+          await tx.anggota.update({
+            where: { id: struk.anggotaId },
+            data: { status: "LUNAS" },
+          });
+        }
+        await tx.transaksi.create({
           data: {
             tipe: "MASUK",
-            nominal: settings.nominalIuran,
+            nominal,
             keterangan: `Iuran ${struk.periodeBulan} — ${struk.anggota.namaLengkap} (${struk.anggota.gender})`,
             strukId: struk.id,
             anggotaId: struk.anggotaId,
             periodeBulan: struk.periodeBulan,
           },
-        }),
-      ]);
+        });
+      });
 
       await auditLog("APPROVE_STRUK", {
         targetId: id,
         targetLabel: struk.anggota.namaLengkap,
-        detail: `Nominal: Rp ${settings.nominalIuran.toLocaleString("id-ID")}`,
+        detail: `Nominal: Rp ${nominal.toLocaleString("id-ID")}`,
       });
 
       return NextResponse.json({
         ok: true,
         action: "approve",
-        nominal: settings.nominalIuran,
+        nominal,
       });
     }
 
@@ -140,12 +142,14 @@ export async function POST(
         },
       }),
       // Pertahankan LUNAS jika ada pembayaran approved lain pada periode ini.
-      db.anggota.update({
-        where: { id: struk.anggotaId },
-        data: {
-          status: struk.anggota.status === "LUNAS" || approvedForPeriod ? "LUNAS" : "BELUM_LUNAS",
-        },
-      }),
+      ...(struk.periodeBulan === getPeriodeBulan()
+        ? [db.anggota.update({
+            where: { id: struk.anggotaId },
+            data: {
+              status: struk.anggota.status === "LUNAS" || approvedForPeriod ? "LUNAS" : "BELUM_LUNAS",
+            },
+          })]
+        : []),
     ]);
 
     await auditLog("REJECT_STRUK", {

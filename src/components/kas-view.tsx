@@ -457,7 +457,7 @@ export function KasView({
                 <span>Catat Transaksi</span>
               </button>
               <p className="text-xs text-[#6b6b6b] font-semibold">
-                Periode: {bulan}. Transaksi otomatis dari struk approved tidak bisa dihapus manual.
+                Periode: {bulan}. Semua transaksi, termasuk pemasukan dari receipt, dapat dihapus oleh Admin.
               </p>
             </form>
           </section>
@@ -516,7 +516,7 @@ export function KasView({
                   >
                     {t.tipe === "MASUK" ? "+" : "−"} {formatRupiah(t.nominal)}
                   </div>
-                  {canEdit && !t.strukId && (
+                  {canEdit && (
                     <button
                       type="button"
                       onClick={() => handleDelete(t.id)}

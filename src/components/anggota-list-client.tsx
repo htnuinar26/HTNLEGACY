@@ -96,8 +96,7 @@ export function AnggotaListClient({
           <button
             key={a.id}
             type="button"
-            onClick={() => !a.receiptAktif && setSelected(a)}
-            disabled={Boolean(a.receiptAktif)}
+            onClick={() => setSelected(a)}
             className="brutal-card-flat brutal-hover-lift p-4 text-left"
             style={{ background: "var(--surface)" }}
           >
@@ -125,11 +124,9 @@ export function AnggotaListClient({
               <StatusBadge status={a.statusTampil as "LUNAS" | "BELUM_LUNAS" | "TERTUNGGAK"} />
             </div>
             <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-[var(--accent-tertiary)]">
-              {a.receiptAktif ? (
-                <span>Receipt {a.receiptAktif === "PENDING" ? "menunggu review" : "sudah disetujui"}</span>
-              ) : (
-                <><Upload size={12} strokeWidth={2.5} /><span>Klik untuk upload struk</span></>
-              )}
+              {a.receiptAktif && <span>Periode berjalan: receipt {a.receiptAktif === "PENDING" ? "menunggu review" : "sudah disetujui"}.</span>}
+              {!a.receiptAktif && <Upload size={12} strokeWidth={2.5} />}
+              <span>{a.receiptAktif ? "Klik untuk upload periode lain (maks 4 bulan)" : "Klik untuk upload struk (maks 4 bulan)"}</span>
             </div>
           </button>
         ))}

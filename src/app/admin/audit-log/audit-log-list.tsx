@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   XCircle,
@@ -15,6 +16,7 @@ import {
   ScrollText,
   Mars,
   Venus,
+  Loader2,
 } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 
@@ -26,6 +28,7 @@ type LogItem = {
   targetLabel: string | null;
   detail: string | null;
   createdAt: string;
+  transactionId: string | null;
 };
 
 const AKSI_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
@@ -46,9 +49,26 @@ const AKSI_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: 
 
 export function AuditLogList({ initialLogs }: { initialLogs: LogItem[] }) {
   const [filter, setFilter] = useState<string>("ALL");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const router = useRouter();
 
   const filtered = filter === "ALL" ? initialLogs : initialLogs.filter((l) => l.aksi === filter);
   const aksiOptions = Array.from(new Set(initialLogs.map((l) => l.aksi))).sort();
+
+  async function deleteTransaction(transactionId: string) {
+    if (!window.confirm("Hapus transaksi kas ini? Audit log akan tetap disimpan sebagai histori.")) return;
+    setDeletingId(transactionId);
+    try {
+      const response = await fetch(`/api/transaksi/${transactionId}`, { method: "DELETE" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error ?? "Gagal menghapus transaksi.");
+      router.refresh();
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Gagal menghapus transaksi.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -128,6 +148,18 @@ export function AuditLogList({ initialLogs }: { initialLogs: LogItem[] }) {
                     <div>{new Date(l.createdAt).toLocaleDateString("id-ID")}</div>
                     <div>{new Date(l.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}</div>
                   </div>
+                  {l.transactionId && l.aksi !== "DELETE_TRANSAKSI" && (
+                    <button
+                      type="button"
+                      onClick={() => void deleteTransaction(l.transactionId as string)}
+                      disabled={deletingId === l.transactionId}
+                      className="brutal-btn brutal-btn-danger p-2 shrink-0"
+                      title="Hapus transaksi kas"
+                      aria-label="Hapus transaksi kas"
+                    >
+                      {deletingId === l.transactionId ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                    </button>
+                  )}
                 </div>
               );
             })}

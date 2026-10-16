@@ -12,6 +12,16 @@ export function getPrevPeriodeBulan(periode: string): string {
   return `${y}-${String(m - 1).padStart(2, "0")}`;
 }
 
+export function getRecentPeriodeBulan(count: number, from: string): string[] {
+  const periods = [from];
+  let current = from;
+  for (let index = 1; index < count; index += 1) {
+    current = getPrevPeriodeBulan(current);
+    periods.push(current);
+  }
+  return periods;
+}
+
 /**
  * Format periode YYYY-MM ke label manusiawi.
  * Contoh: "2026-10" → "Okt 2026"

@@ -38,7 +38,7 @@ export function StatusBadge({ status }: { status: StatusType }) {
   const cfg = MAP[status] ?? MAP.BELUM_LUNAS;
   const Icon = cfg.icon;
   return (
-    <span className={cn("brutal-badge", cfg.cls)}>
+    <span className={cn("brutal-badge status-badge", cfg.cls)}>
       <Icon size={13} strokeWidth={2.5} aria-hidden="true" />
       <span>{cfg.label}</span>
     </span>

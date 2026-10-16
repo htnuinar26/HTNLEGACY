@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { isAdmin } from "@/lib/auth";
 import { auditLog } from "@/lib/audit";
+import { removeStorageObjects } from "@/lib/storage";
 
 export async function DELETE(
   _req: NextRequest,
@@ -17,14 +18,31 @@ export async function DELETE(
     if (!t) {
       return NextResponse.json({ error: "Transaksi tidak ditemukan." }, { status: 404 });
     }
-    // Tidak boleh hapus transaksi yang berasal dari struk approved (strukId !== null)
-    if (t.strukId) {
-      return NextResponse.json(
-        { error: "Transaksi otomatis dari struk tidak bisa dihapus. Hapus/reject struk terkait dulu." },
-        { status: 400 }
-      );
-    }
-    await db.transaksi.delete({ where: { id } });
+    const linkedReceipt = t.strukId
+      ? await db.struk.findUnique({ where: { id: t.strukId }, select: { id: true, imageUrl: true, anggotaId: true, periodeBulan: true } })
+      : null;
+    await db.$transaction(async (tx) => {
+      await tx.transaksi.delete({ where: { id } });
+      if (linkedReceipt) {
+        await tx.struk.update({
+          where: { id: linkedReceipt.id },
+          data: {
+            statusStruk: "REJECTED",
+            ditolakAlasan: "Transaksi kas dihapus oleh admin.",
+            verifiedAt: new Date(),
+          },
+        });
+        if (linkedReceipt.periodeBulan === new Date().toISOString().slice(0, 7)) {
+          const remainingApproved = await tx.struk.count({
+            where: { anggotaId: linkedReceipt.anggotaId, periodeBulan: linkedReceipt.periodeBulan, statusStruk: "APPROVED" },
+          });
+          if (remainingApproved === 0) {
+            await tx.anggota.update({ where: { id: linkedReceipt.anggotaId }, data: { status: "BELUM_LUNAS" } });
+          }
+        }
+      }
+    });
+    if (linkedReceipt) await removeStorageObjects([linkedReceipt.imageUrl]).catch(() => undefined);
     await auditLog("DELETE_TRANSAKSI", {
       targetId: id,
       targetLabel: t.keterangan,
