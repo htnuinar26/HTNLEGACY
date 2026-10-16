@@ -52,3 +52,7 @@ dev.out.log
 server.log
 # Skills directory
 /skills/
+
+# Log
+logs/
+*.log
