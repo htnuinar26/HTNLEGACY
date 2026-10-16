@@ -10,6 +10,7 @@ import { db } from "./db";
 export type AuditAksi =
   | "APPROVE_STRUK"
   | "REJECT_STRUK"
+  | "GENERATE_STRUK_MANUAL"
   | "UPDATE_STATUS"
   | "UPDATE_ANGGOTA"
   | "DELETE_ANGGOTA"

@@ -16,6 +16,7 @@ import {
   ArrowLeft,
   Users,
   ScrollText,
+  ReceiptText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminGlobalSearch } from "@/components/admin-global-search";
@@ -26,6 +27,7 @@ const NAV = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Data Anggota", href: "/admin/anggota", icon: Users },
   { label: "Verifikasi Struk", href: "/admin/struk", icon: ImageIcon },
+  { label: "Struk Generator", href: "/admin/struk-generator", icon: ReceiptText },
   { label: "Kas & Transaksi", href: "/admin/kas", icon: Wallet },
   { label: "Import Data", href: "/admin/import", icon: Upload },
   { label: "Audit Log", href: "/admin/audit-log", icon: ScrollText },

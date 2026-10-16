@@ -11,6 +11,7 @@ import {
   Settings as SettingsIcon,
   RefreshCw,
   FileArchive,
+  ReceiptText,
   ScrollText,
   Mars,
   Venus,
@@ -40,6 +41,7 @@ const AKSI_CONFIG: Record<string, { icon: React.ElementType; color: string; bg: 
   DELETE_TRANSAKSI: { icon: Trash2, color: "#ffffff", bg: "var(--status-tertunggak)" },
   RESET_SIKLUS: { icon: RefreshCw, color: "var(--ink)", bg: "var(--status-pending)" },
   GENERATE_LAPORAN: { icon: FileArchive, color: "var(--ink)", bg: "var(--accent-tertiary)" },
+  GENERATE_STRUK_MANUAL: { icon: ReceiptText, color: "var(--ink)", bg: "var(--accent-primary)" },
 };
 
 export function AuditLogList({ initialLogs }: { initialLogs: LogItem[] }) {
